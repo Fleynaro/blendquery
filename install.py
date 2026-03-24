@@ -24,9 +24,8 @@ def install_dependencies(
             [
                 pip_executable,
                 "install",
-                "--pre",
                 "cadquery",
-                "git+https://github.com/gumyr/build123d",
+                "build123d",
             ],
             stderr=subprocess.PIPE,
         )
