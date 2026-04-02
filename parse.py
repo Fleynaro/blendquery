@@ -21,17 +21,14 @@ def main():
     ]
 
     def parse_parametric_script(script: str):
-        locals = {}
-        globals = {
-            "cadquery": cadquery,
+        execution_context = {
+           "cadquery": cadquery,
             "cq": cadquery,
-            # Exclude Build123d here as most examples already import it and it is usually a spread import
         }
-        exec(script, globals, locals)
-
+        exec(script, execution_context, execution_context)
         return [
             parse_parametric_object(value, name, None)
-            for name, value in locals.items()
+            for name, value in execution_context.items()
             # Filter out all non-constructive and hidden objects (those prefixed with "_")
             if isinstance(value, ParametricObject) and not name.startswith("_")
         ]
