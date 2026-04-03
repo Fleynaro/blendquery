@@ -46,6 +46,7 @@ def register():
     bpy.utils.register_class(BlendQueryImportDependenciesOperator)
     bpy.utils.register_class(BlendQueryInstallOperator)
     bpy.utils.register_class(BlendQueryRegenerateOperator)
+    bpy.utils.register_class(BlendQueryCopyVenvPathOperator)
     bpy.utils.register_class(BlendQueryPanel)
     bpy.utils.register_class(BlendQueryWindowPropertyGroup)
     bpy.types.WindowManager.blendquery = bpy.props.PointerProperty(
@@ -70,6 +71,7 @@ def unregister():
     del bpy.types.WindowManager.blendquery
     bpy.utils.unregister_class(BlendQueryPanel)
     bpy.utils.unregister_class(BlendQueryWindowPropertyGroup)
+    bpy.utils.unregister_class(BlendQueryCopyVenvPathOperator)
     bpy.utils.unregister_class(BlendQueryRegenerateOperator)
     bpy.utils.unregister_class(BlendQueryInstallOperator)
     bpy.utils.unregister_class(BlendQueryImportDependenciesOperator)
@@ -347,6 +349,18 @@ class BlendQueryInstallOperator(bpy.types.Operator):
         return {"PASS_THROUGH"}
 
 
+class BlendQueryCopyVenvPathOperator(bpy.types.Operator):
+    bl_idname = "blendquery.copy_venv_path"
+    bl_label = "Copy venv path"
+    bl_description = "Copy the virtual environment path to clipboard"
+
+    def execute(self, context):
+        path = venv_dir.replace("\\", "/")
+        bpy.context.window_manager.clipboard = path
+        self.report({'INFO'}, f"Path copied: {path}")
+        return {'FINISHED'}
+
+
 # TODO: Pull UI components into separate functions
 class BlendQueryPanel(bpy.types.Panel):
     bl_idname = "OBJECT_PT_BLENDQUERY_PANEL"
@@ -363,14 +377,19 @@ class BlendQueryPanel(bpy.types.Panel):
             self.not_installed(layout, context)
 
     def installed(self, layout, context):
+        column = layout.column()
+
+        column.operator("blendquery.copy_venv_path", icon='COPY_ID', text="Copy venv path")
+        column.separator(factor=1.0)
+
         if context.active_object:
             object = context.active_object
-            column = layout.column()
             column.prop(object.blendquery, "script")
             column.separator(factor=0.5)
             row = column.row()
             row.prop(object.blendquery, "reload")
             row.operator("blendquery.regenerate", text="Regenerate")
+
     def not_installed(self, layout, context):
         box = layout.box()
         box.label(
